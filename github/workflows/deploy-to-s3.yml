@@ -1,25 +1,29 @@
-name: Deploy to S3
+name: Deploy to AWS S3
 
+# Trigger the workflow on push to the main branch (or adjust to your preferred branch)
 on:
   push:
     branches:
-      - main  # Trigger workflow on push to the 'main' branch
+      - main
 
 jobs:
   deploy:
     runs-on: ubuntu-latest
-
+    
     steps:
-      # Step 1: Checkout the repository
-      - name: Checkout Code
-        uses: actions/checkout@v3
+    - name: Checkout repository
+      uses: actions/checkout@v2
 
-      # Step 2: Configure AWS Credentials
-      - name: Configure AWS Credentials
-        uses: aws-actions/configure-aws-credentials@v2
-        with:
-          aws-s3-bucket: ${{ secrets.AWS_S3_BUCKET}}
-          aws-access-key-id: ${{ secrets.AWS_ACCESS_KEY_ID }}
-          aws-secret-access-key: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
-          aws-region: us-east-1
-          source-dir: "website"# Replace with your AWS region
+    - name: Set up AWS CLI
+      uses: aws-actions/configure-aws-credentials@v1
+      with:
+        aws-access-key-id: ${{ secrets.AWS_ACCESS_KEY_ID }}
+        aws-secret-access-key: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
+        aws-region: ${{ secrets.AWS_REGION }}
+
+    - name: Sync files to S3
+      run: |
+        aws s3 sync ./public s3://${{ secrets.S3_BUCKET_NAME }}/ --delete
+      # `./public` is your local directory to sync. Modify if needed.
+      # --delete flag ensures that files deleted locally are also deleted in the S3 bucket.
+
